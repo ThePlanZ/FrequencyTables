@@ -1,5 +1,5 @@
 import os, csv, json, sys, tty, termios
-
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 needsprint=True
 solvereturn=False
 unknown="?"
@@ -13,9 +13,7 @@ fa=[unknown]
 faa=[unknown]
 fp=[unknown]
 fpp=[unknown]
-
 errormsg=""
-
 findex = {"fa": 0,
        "faa": 1,
        "fp": 2,
@@ -32,7 +30,6 @@ settings={"decprec":3,
           "fp": "hi",
           "fpp": "Hi",
           "dd": "N",
-
           "cursorcolor":93,
           "K rm col": "n",
           "K add col": "m",
@@ -44,18 +41,12 @@ settings={"decprec":3,
           "K ch set": "l",
           "K help": "p",
           "K quit": "q",
-
           }
-
 chart=[]
-
 defsettings=settings.copy()
 cursor=[0,0]
-
 printhighlight=False
-
 buffer=""
-
 def logic():
     global chart,fa,faa,fp,fpp,dd,settings,needsprint, errormsg, buffer, printhighlight
     if os.path.exists("settings.json"):
@@ -69,7 +60,6 @@ def logic():
         settings=defsettings.copy()
     else:
         settings=pendsettings.copy()
-
     for file in ["tmp.csv", settings["tablefiledst"]]:
         try:
             if loadchart(file):
@@ -78,7 +68,6 @@ def logic():
             errormsg="corrupt chart: index error. try quitting without saving to restore the last properly saved chart"
         except Exception:
             os.remove(file)
-
     buffer=""
     while True:
         # Refresh the chart
@@ -95,13 +84,11 @@ def logic():
                             chart[row][cell] = int(chart[row][cell])
                             if chart[row][cell] < 0:
                                 chart[row][cell] = unknown
-
                         try:
                             if len(cutup(chart[row][cell], ".")[1]) > settings["decprec"]:
                                 chart[row][cell] = float(chart[row][cell], settings["decprec"])
                         except IndexError:
                             pass
-
                 except ValueError:
                     pass
         if needsprint:
@@ -122,7 +109,6 @@ def logic():
                 toaccent=int(not toaccent)
             keybar+="\033[0m"
             print(keybar)
-
             tableprint()
         needsprint=True
         if os.path.exists("tmp.csv"):
@@ -147,42 +133,31 @@ def logic():
             movement = 1
             if key in ("UP", "LEFT"):
                 movement = -1
-
             cursor[ishoriz]+=movement
-
         elif key.isdigit() or key == ".":
             buffer += key
-
         elif key == "BACKSPACE":
             buffer = buffer[:-1]
-
         elif key == "ENTER":
             write_to_cell(position)
-
         elif key == settings["K highcell"].upper():
             printhighlight=not printhighlight
-
         elif key == settings["K rm col"].upper():
             for frequency in chart[:4]:
                 if not len(frequency) <= 1:
                     frequency.pop()
-
         elif key == settings["K add col"].upper():
             for frequency in chart[:4]:
                 frequency.append(unknown)
-
         elif key == settings["K brute"].upper():
             brutesolve()
-
         elif key == settings["K solve"].upper():
              solve(position, override=False)
-
         elif key == settings["K help"].upper():
             helptxt()
-
         elif key == settings["K erasechart"].upper():
             fullclear = (0,1,2,3,4)
-            freqclear = cursor[0]
+            freqclear = cursor[1]
             clearbox = (" ",
                         "Do you want to clear the table or the frequency?",
                         f"{settings['K rm col']} - Frequency",
@@ -195,15 +170,12 @@ def logic():
                 cleartable(fullclear)
             elif victim == settings['K rm col'].upper():
                 cleartable(freqclear)
-
-
         elif key == settings["K clearcell"].upper():
             try:
                 modify(f"{position}-clr")
                 buffer = ""
             except IndexError:
                 pass
-
         elif key == settings["K quit"].upper():
             quittingbox = (" ",
                            "Save chart?",
@@ -219,10 +191,8 @@ def logic():
                 quitlogic("clr")
             elif quitcmd == "Y" or quitcmd == "N":
                 quitlogic(quitcmd.lower())
-
         elif key == settings["K ch set"].upper():
             settingschange()
-
         cursor[1]%=5
         cursor[0]%=(len(chart[0])if len(chart[0]) != 0 else 1)
         #Set the dd variable because im not globalizing dd every single time im sloppy enough when it comes to global vars
@@ -239,7 +209,6 @@ def write_to_cell(where, silent=False):
         buffer = ""
     except IndexError:
         errormsg="Out of index"
-
 def make_box(boxtext, style="44;97", boxwidth=None):
     print(f'\033[2J\033[H\033[{style}m', end="")
     if boxwidth==None:
@@ -249,7 +218,6 @@ def make_box(boxtext, style="44;97", boxwidth=None):
     for textline in boxtext:
         print(f"  {textline:{boxwidth}}  ")
     print("\033[0m")
-
 def settingschange():
     global settings
     colorsyay = ""
@@ -283,12 +251,10 @@ def settingschange():
         option=tuple(settings.keys())[i]
         prompt=tuple(options.keys())[i]
         type=tuple(options.values())[i]
-
         worked=False
         while not worked:
             want=input((prompt + "\n{v}\n> ").format(v=settings[option])).strip()
             worked=True
-
             try:
                 if want=="":
                     pass
@@ -301,7 +267,6 @@ def settingschange():
                         settings[option] = False
                 else:
                     want = type(want)
-
                     if option[:2]=="K " and len(want)!=1:
                         worked=False
                         print("\033[31mInvalid Value! Must only be one character.\033[0m")
@@ -313,13 +278,10 @@ def settingschange():
             except ValueError:
                 worked = False
                 print("\033[31mInvalid Value!\033[0m")
-
         flag="w" if os.path.exists("settings.json") else "x"
         json.dump(settings, open("settings.json", flag), indent=0)
-
 class QuitException(Exception):
     pass
-
 def quitlogic(save=""):
     if save=="y":
         if os.path.exists(settings["tablefiledst"]):
@@ -332,67 +294,48 @@ def quitlogic(save=""):
         os.remove("tmp.csv")
     print('\033[2J\033[H')
     raise QuitException
-
-
 def tableprint():
     global findex, chart, needsprint, printhighlight
     needsprint = False
     printchart = chart
-
     vertout, horout, freqsep, outtopcor, outfall, freqtrans, freqintr, outbotcor, outcatch, regtrail, freqtrail = "║", "═", "─", "╔", "╦", "╟", "╫", "╚", "╩", "╸", "╼"
-
     biggest = max(len(str(i)) for freq in printchart for i in freq)
-
     vrange=settings["viewrange"]
     if vrange <= 0:
         try:
             vrange=os.get_terminal_size().lines-10
         except OSError:
             vrange=7
-
     freqlie = tuple(settings.keys()).index("fa")
     for i in tuple(settings.values())[freqlie : freqlie + 5]:
         biggest = max(biggest, len(i), len(str(chart[4][0])))
-
     biggest += 1
     freqprint = vertout
-
     for i in range(len(chart)):
         sep = vertout if i != 4 else ""
         freqprint += f"{settings[tuple(findex.keys())[i]]:>{biggest}} {sep}"
-
     importantcells=get_important_cells(cursor[::-1])
-
     printchart = flip_grid_axis(printchart)
     start, end = get_view_range(cursor[0], printchart, vrange)
-
     print(f"  {create_separator(outtopcor, horout, biggest+1, outfall, 4, f"{horout * (biggest+1)}{regtrail}")}")
     print(f"  {freqprint}")
     print(f" {f"\033[{settings["cursorcolor"]}m🠝\033[0m" if start != -1 else " "}{create_separator(freqtrans, freqsep, biggest+1, freqintr, 4, f"{freqsep * (biggest+1)}{freqtrail}")}")
-
     add_dd = True
-
     for row in range(start+1, end):
         prettyprint = f"\033[1;{(accent(settings["cursorcolor"]) if cursor[0] != row else settings["cursorcolor"]+60)-60}m{str(row+1)[-2:]:>2}\033[0m{vertout}"
         for column in range(4):
             value=printchart[row][column]
             if value == None:
                 continue
-
             selectcolor=get_color(cursor, row, column, importantcells, unknown, value, printhighlight)
-
             prettyprint += f"{selectcolor}{value:>{biggest}} \033[0m{vertout}"
-
         if add_dd:
             selectcolor=get_color(cursor, 0, 4, importantcells, unknown, chart[4][0], printhighlight)
             add_dd = False
             prettyprint += f"{selectcolor}{chart[4][0]:>{biggest}} \033[0m "
-
         print(prettyprint)
-
     print(f" {f"\033[1;{settings["cursorcolor"]}m🠟\033[0m" if end != len(printchart) else " "}{create_separator(outbotcor, horout, biggest+1, outcatch, 4, f"{horout * (biggest+1)}{regtrail}")}")
     return
-
 def get_color(cursor, row, column, highlightdict, unknown, val, allowhightlight):
     activecolor = ""
     if cursor == [row, column] or cursor[1]==column==4:
@@ -401,52 +344,35 @@ def get_color(cursor, row, column, highlightdict, unknown, val, allowhightlight)
         activecolor = f"\033[1;{accent(settings["cursorcolor"], highlightdict[f"{column}-{row}"])}m"
     elif val == unknown:
         activecolor = "\033[90m"
-
     return activecolor
-
 def get_important_cells(where):
     x,y=where
     importantcells = {}
-
     accualt = x + ((((x + 1) % 2) * 2) - 1)
     atp = (x + 2) % 4
-
     if x==4:
         importantcells[f"1-{len(chart[1])-1}"] = 1
     else:
-
-        # First cell edgecases (fa,faa)(fp,fpp)
         if y == 0:
             importantcells[f"{accualt}-{y}"] = 1
-
-        # Last cell edgecases (fx,dd)(fxx,dd)
         if y == len(chart[1]) - 1 and x == 1:
             importantcells["4-0"] = 2
         else:
             importantcells[f"{atp}-{y}"] = 1
             importantcells["4-0"] = 1
-
-        ## fa fp cases
         if x % 2 == 0:
             importantcells[f"{x + 1}-{y}"] = 5
             importantcells[f"{x + 1}-{y - 1}"] = 5
-
             importantcells[f"{x + 1}-{y + 1}"] = 4
             importantcells[f"{x}-{y + 1}"] = 4
-
-        ## faa fpp cases
         if x % 2 == 1:
             importantcells[f"{x}-{y - 1}"] = 5
             importantcells[f"{x - 1}-{y}"] = 5
-
             importantcells[f"{x}-{y + 1}"] = 4
             importantcells[f"{x - 1}-{y + 1}"] = 4
-
     return importantcells
-
 def create_separator(start, line, linelength: int, intersect, repeats: int, trail):
     return f'{start}{f"{line * linelength}{intersect}" * repeats}{trail}'
-
 def brutesolve():
     global chart
     significant=True
@@ -459,8 +385,6 @@ def brutesolve():
                     significant=True
                 if x in (1,2):
                     solve("dd", True, False)
-
-
 def isknown(xa, ya, xb="", yb=""):
     global unknown, chart
     if xa=="dd":
@@ -470,8 +394,6 @@ def isknown(xa, ya, xb="", yb=""):
         return True
     else:
         return False
-
-
 def smod(coords, va):
     global solvereturn
     xa=coords[0]
@@ -481,7 +403,6 @@ def smod(coords, va):
     else:
         modify(f"{xa},{ya}-{va}")
         solvereturn=True
-
 def solve(txt,bg=False, override=True):
     #X AND Y FUNCTION ARGUMENTS USE USER ROWS AND COLUMNS (start at 1, not 0).
     global chart, solvereturn, errormsg
@@ -493,13 +414,11 @@ def solve(txt,bg=False, override=True):
         y=yval[i]
         solvereturn=False
         c=[x,y]
-
         try:
             if isknown(x, y) and not override:
                 if not bg:
                     errormsg="Already Solved!"
                 return False
-
             if x=="dd":
                 #if the last faa entry isnt unknown, set chart[4][0] (dd) to it
                 if isknown(1, len(chart[1])-1):
@@ -514,29 +433,22 @@ def solve(txt,bg=False, override=True):
                 return solvereturn
             #if the cell is known and override is untrue
             #this code is now less of a mess
-
             # FORMULAS
             accualt = x + ((((x + 1) % 2) * 2) - 1)
             atp = (x + 2) % 4
-
             # First cell edgecases (fa,faa)(fp,fpp)
             if y==0 and isknown(accualt, y):
                 smod(c,chart[accualt][y])
-
             # Last cell edgecases (fx,dd)(fxx,dd)
             elif y==len(chart[1])-1 and x==1 and isknown("dd", 0):
                 smod(c, chart[4][0])
-
             ## fa fp cases
             elif x % 2 == 0:
                 # CAN I GET THIS FROM THE ACCUMULATED ENTRY BESIDE ME AND THE ACCUMULATED ENTRY BELOW IT?
                 if isknown(x+1, y, x+1, y-1):
                     smod(c,chart[x+1][y]-chart[x+1][y-1])
-
-
                 elif isknown(x, y+1, x+1, y+1):
                     smod(c,chart[x+1][y+1]-chart[x][y+1])
-
             ## faa fpp cases
             elif x % 2 == 1:
                 # CAN I SOLVE MYSELF USING THE ACCUMULATED ENTRY BEFORE ME AND THE NON ACUMMULATED ENTRY AT MY LEVEL?
@@ -547,28 +459,21 @@ def solve(txt,bg=False, override=True):
                     smod(c, chart[x][y+1] - chart[x-1][y+1])
                 elif unknown not in chart[x-1]:
                     smod(c, sum(chart[x-1]))
-
             ## general cases
             # CAN I GET THIS FROM THE ABSOLUTE/PROPORTIONAL FREQ?
-
             if isknown(4, 0, atp, y) and not solvereturn:
                 smod(c,(chart[atp][y] / chart[4][0]) if x > 1 else (chart[atp][y] * chart[4][0]))
         except IndexError:
             pass
-
         if solvereturn==False and not bg:
             errormsg="Couldn't solve cell :("
-
         return solvereturn
-
-
 def modify(txt):
     global chart, settings
     syntaxoutput=freqsyntax(txt, True)
     freq=syntaxoutput[0]
     cell=syntaxoutput[1]
     val=syntaxoutput[2]
-
     #check to see if the table is big enough. if not, pad it
     chart = padtable(cell, chart, 1)
     if len(cell) == len(freq) == len(val):
@@ -584,8 +489,6 @@ def modify(txt):
             chart[freq[i]][cell[i]] = (unknown if val[i]=="clr" else toval)
     else:
         exit(f"[freq][cell][val] dont line up: f{freq} c{cell} v{val}")
-
-
 def rowhandler(input, candd=False):
     global findex
     input=str(input)
@@ -602,8 +505,6 @@ def rowhandler(input, candd=False):
     else:
         print(input)
         exit(f"Unknown column type : {input}")
-
-
 def freqsyntax(txt, needval=False):
     global chart, settings, errormsg
     pending = []
@@ -645,16 +546,12 @@ def freqsyntax(txt, needval=False):
     else:
         returnval = [freqcol, cell]
     return returnval
-
-
 def padtable(to, table, endomit):
     #USES TRUENUM
     for column in range(len(table) - endomit):
         if max(to) > len(table[column])-1:
             table[column] = padrow(max(to), table[column], unknown)
     return table
-
-
 def cutup(txt, lookfor):
     returnval=[]
     txt=str(txt)
@@ -677,14 +574,11 @@ def cutup(txt, lookfor):
         e=found[i+1]
         returnval.append(txt[b:e])
     return returnval
-
-
 def padrow(truenumneed, list, fill):
     if truenumneed > len(list)-1:
         for pad in range(truenumneed - (len(list)-1)):
             list.append(fill)
     return list
-
 def loadchart(file):
     global fa,faa,fp,fpp,dd
     if os.path.exists(file):
@@ -699,10 +593,8 @@ def loadchart(file):
         fpp = chart[3]
         dd = chart[4]
         return True
-
 def helptxt():
     helpentries=("This is the help book. e to elaborate, f to finish reading, p to spill",
-
                  '---ACTIONS',
                  'Move around the table with the arrow keys',
                  'Typing numbers will put them into a releaseable buffer. Release this buffer with the enter key',
@@ -713,7 +605,6 @@ def helptxt():
                  f"Quit the program by pressing {settings["K quit"]}",
                  f"Erase the whole chart by pressing {settings["K erasechart"]}",
                  f"Adjust some settings by pressing {settings["K ch set"]}",
-
                  '---FREQUENCIES',
                  f'{settings["fa"]} - ABSOLUTE FREQUENCY',
                  f'{settings["faa"]} - SUMMED ABSOLUTE FREQUENCY',
@@ -722,7 +613,6 @@ def helptxt():
                  f'{settings["dd"]} - TOTAL DATAPOINTS',
                  )
     elaborateentries = ("This help book will contain everything you need to know to use this program efficiently. If contains commands, the syntax, and explanations on most everything in the program. use e to elaborate, f to finish reading, and p to spill, anything else to exit. if using p after elaborating, will print everything elaborated",
-
                         'These are what you will be using to interface with your table. This script is no longer a CLI/Text Based Interface because i rock and am awesome so a GUI is provided',
                         'Move around the table with the arrow keys. A bright cursor will tell you where you are. The selected cell is the one all cell-specific actions will be executed on',
                         'Typing numbers or a period for a decimal will put them into a releaseable buffer, shown under the chart. Release this buffer into the selected cell with the enter key.',
@@ -733,16 +623,13 @@ def helptxt():
                         f"Quit the program by pressing {settings["K quit"]}, and chose to save the chart or not.",
                         f"Erase the whole chart by pressing {settings["K erasechart"]}. Has confirmation",
                         f"Adjust some settings by pressing {settings["K ch set"]}",
-
                         f'---FREQUENCIES',
                         f'{settings["fa"]} - ABSOLUTE FREQUENCY: How many datapoints fall into that category',
                         f'{settings["faa"]} - SUMMED ABSOLUTE FREQUENCY: How many datapoints fall into that category and the ones preceeding it',
                         f'{settings["fp"]} - PROPORTIONAL FREQUENCY: How much of the total datapoints fall into that category',
                         f'{settings["fpp"]} - SUMMED PROPORTIONAL FREQUENCY: How much of the total datapoints fall into that category and the ones preceeding it',
                         f'{settings["dd"]} - TOTAL DATAPOINTS: How many datapoints were collected',
-
                         )
-
     doingshit=True
     print('\033[2J\033[H')
     while doingshit:
@@ -750,12 +637,10 @@ def helptxt():
             issimple = True
             onthisentry = True
             canelaborate = True
-
             print("\033[s")
             prompt = f"[_{"/e" if canelaborate else ""}/p/f]      "
             print(f"\033[H{prompt}")
             print("\033[u")
-
             while onthisentry:
                 if not issimple:
                     print(f"\033[{settings["cursorcolor"]}m{elaborateentries[i]}\033[0m")
@@ -790,8 +675,6 @@ def helptxt():
                 break
         doingshit=False
     print("")
-
-
 def cleartable(arg=(0,1,2,3,4)):
     global fa,faa,fp,fpp,dd,unknown
     if type(arg)==int:
@@ -799,7 +682,6 @@ def cleartable(arg=(0,1,2,3,4)):
     for frequency in arg:
         for cell in range(len(chart[frequency])):
             chart[frequency][cell]=unknown
-
 commands={"mod": modify,
           "settings": settingschange,
           "solve": solve,
@@ -811,12 +693,10 @@ commands={"mod": modify,
           "q": quitlogic,
           "quit": quitlogic,
          }
-
 commandprompts={modify: ">",
                 solve: ">",
                 quitlogic: "Save? [y/n/clr] >> ",
                 }
-
 prettykey = {
     "\033[A": "Up",
     "\033[B": "Down",
@@ -828,7 +708,6 @@ prettykey = {
     "\x7f": "Backspace",
     "\x08": "Backspace",
 }
-
 def wait_for_key(desiredkey: str|None =None, *args, **kwargs):
     pressedkey = ""
     while pressedkey == "":
@@ -836,7 +715,6 @@ def wait_for_key(desiredkey: str|None =None, *args, **kwargs):
         if desiredkey!=None and pressedkey!=desiredkey.upper():
             pressedkey=""
     return pressedkey.upper()
-
 def get_key(lookup=prettykey):
     fd_for_stdin=sys.stdin.fileno()
     old_stdin_settings=termios.tcgetattr(fd_for_stdin)
@@ -855,7 +733,6 @@ def get_key(lookup=prettykey):
     except KeyError:
         pressedkey=read
     return pressedkey
-
 def flip_grid_axis(oldgrid):
     newgrid=[]
     index=0
@@ -870,37 +747,24 @@ def flip_grid_axis(oldgrid):
             except IndexError:
                 newgrid[index].append(None)
         index+=1
-
     return newgrid
-
 def get_view_range(index, boundary, vrange):
     if type(boundary) in (tuple, list, set):
         boundary = len(boundary)
-
     start = index - round(vrange / 2) - 1
     end = start + vrange + 1
-
-    usedif=0
-
     if start < 0:
-        usedif = 1
         end += (abs(start) - 1)
         start = -1
     elif end > boundary:
-        usedif = 2
         end = boundary
         start = boundary - (vrange + 1)
-
     if vrange > boundary:
-        usedif = 3
         start = -1
         end = boundary
-
     return (start, end)
-
 def accent(num, shift=3):
     return ((num-(91-shift))%6)+91
-
 if __name__ == '__main__':
     try:
         logic()
