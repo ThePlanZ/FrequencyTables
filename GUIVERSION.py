@@ -20,6 +20,10 @@ findex = {"fa": 0,
        "fpp": 3,
        "dd": 4
        }
+
+
+edgespace=3
+
 settings={"decprec":3,
           "solvedd":False,
           "tablefiledst":"table.csv",
@@ -103,7 +107,7 @@ def logic():
                    f'{settings["K help"]}-Help',
                    f'{settings["K quit"]}-Quit')
             toaccent=0
-            keybar=""
+            keybar=" "*edgespace
             for entry in keybar_entries:
                 keybar+=f"\033[30;{accent(settings["cursorcolor"], shift=toaccent*3)}m{entry} "
                 toaccent=int(not toaccent)
@@ -116,8 +120,8 @@ def logic():
         writer = csv.writer(open("tmp.csv", "x"), quotechar="'", delimiter=",", quoting=csv.QUOTE_STRINGS)
         for row in chart:
             writer.writerow(row)
-        print(f"\033[5m\033[?25l>> \033[25m\033[{settings["cursorcolor"]};1m{buffer}\033[0m")
-        print(f"\033[91;1m{errormsg}\033[0m")
+        print(f"{" "*edgespace}\033[5m\033[?25l>> \033[25m\033[{settings["cursorcolor"]};1m{buffer}\033[0m")
+        print(f"{" "*edgespace}\033[91;1m{errormsg}\033[0m")
         errormsg=""
         key = wait_for_key()
         if cursor[1] != 4:
@@ -317,12 +321,12 @@ def tableprint():
     importantcells=get_important_cells(cursor[::-1])
     printchart = flip_grid_axis(printchart)
     start, end = get_view_range(cursor[0], printchart, vrange)
-    print(f"  {create_separator(outtopcor, horout, biggest+1, outfall, 4, f"{horout * (biggest+1)}{regtrail}")}")
-    print(f"  {freqprint}")
-    print(f" {f"\033[{settings["cursorcolor"]}m🠝\033[0m" if start != -1 else " "}{create_separator(freqtrans, freqsep, biggest+1, freqintr, 4, f"{freqsep * (biggest+1)}{freqtrail}")}")
+    print(f"{" "*edgespace}  {create_separator(outtopcor, horout, biggest+1, outfall, 4, f"{horout * (biggest+1)}{regtrail}")}")
+    print(f"{" "*edgespace}  {freqprint}")
+    print(f"{" "*edgespace} {f"\033[{settings["cursorcolor"]}m🠝\033[0m" if start != -1 else " "}{create_separator(freqtrans, freqsep, biggest+1, freqintr, 4, f"{freqsep * (biggest+1)}{freqtrail}")}")
     add_dd = True
     for row in range(start+1, end):
-        prettyprint = f"\033[1;{(accent(settings["cursorcolor"]) if cursor[0] != row else settings["cursorcolor"]+60)-60}m{str(row+1)[-2:]:>2}\033[0m{vertout}"
+        prettyprint = f"{" "*edgespace}\033[1;{(accent(settings["cursorcolor"]) if cursor[0] != row else settings["cursorcolor"]+60)-60}m{str(row+1)[-2:]:>2}\033[0m{vertout}"
         for column in range(4):
             value=printchart[row][column]
             if value == None:
@@ -334,7 +338,7 @@ def tableprint():
             add_dd = False
             prettyprint += f"{selectcolor}{chart[4][0]:>{biggest}} \033[0m "
         print(prettyprint)
-    print(f" {f"\033[1;{settings["cursorcolor"]}m🠟\033[0m" if end != len(printchart) else " "}{create_separator(outbotcor, horout, biggest+1, outcatch, 4, f"{horout * (biggest+1)}{regtrail}")}")
+    print(f"{" "*edgespace} {f"\033[1;{settings["cursorcolor"]}m🠟\033[0m" if end != len(printchart) else " "}{create_separator(outbotcor, horout, biggest+1, outcatch, 4, f"{horout * (biggest+1)}{regtrail}")}")
     return
 def get_color(cursor, row, column, highlightdict, unknown, val, allowhightlight):
     activecolor = ""
