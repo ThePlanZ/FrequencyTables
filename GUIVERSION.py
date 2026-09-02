@@ -774,7 +774,7 @@ if __name__ == '__main__':
         logic()
     except QuitException:
         pass
-    except termios.error, OSError:
+    except (termios.error, OSError):
         print('\033[2J')
         print("Incompatible Terminal!")
     finally:
