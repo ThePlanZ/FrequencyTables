@@ -367,8 +367,6 @@ def get_important_cells(where):
         if x % 2 == 0:
             importantcells[f"{x + 1}-{y}"] = 5
             importantcells[f"{x + 1}-{y - 1}"] = 5
-            importantcells[f"{x + 1}-{y + 1}"] = 4
-            importantcells[f"{x}-{y + 1}"] = 4
         if x % 2 == 1:
             importantcells[f"{x}-{y - 1}"] = 5
             importantcells[f"{x - 1}-{y}"] = 5
@@ -451,8 +449,6 @@ def solve(txt,bg=False, override=True):
                 # CAN I GET THIS FROM THE ACCUMULATED ENTRY BESIDE ME AND THE ACCUMULATED ENTRY BELOW IT?
                 if isknown(x+1, y, x+1, y-1):
                     smod(c,chart[x+1][y]-chart[x+1][y-1])
-                elif isknown(x, y+1, x+1, y+1):
-                    smod(c,chart[x+1][y+1]-chart[x][y+1])
             ## faa fpp cases
             elif x % 2 == 1:
                 # CAN I SOLVE MYSELF USING THE ACCUMULATED ENTRY BEFORE ME AND THE NON ACUMMULATED ENTRY AT MY LEVEL?
