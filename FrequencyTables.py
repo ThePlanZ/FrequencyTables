@@ -128,7 +128,6 @@ def settingschange():
             settings[option]=defsettings[option]
         elif type==bool:
             if want.lower() in ("true", "1", "y"):
-                print("nwf")
                 settings[option] = True
             else:
                 settings[option] = False
