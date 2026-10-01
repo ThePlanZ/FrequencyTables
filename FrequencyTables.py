@@ -1,7 +1,5 @@
 import os, csv, json
 
-from testathon import simplecommands
-
 needsprint=True
 solvereturn=False
 unknown="?"
